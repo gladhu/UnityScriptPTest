@@ -18,6 +18,26 @@ public class PTest : MonoBehaviour
     Action mJitSwitch;
     Action mVersion;
 
+    public string[] testDes = new string[] {
+    "position get-set",
+    "transform:Rotate",
+    "vector",
+    "GameObject",
+    "Component",
+    "Input.mousePosition",
+    "Vector3",
+    "Quaternion",
+    "+-*/",
+    "array +",
+    "lua call cs func(int, string, vec3, trans)",         // 10
+    "lua call cs func()",
+    "cs get lua value: number ",
+    "cs get lua value: string ",
+    "cs get lua value: gameObject ",
+    "cs get lua value: vector ",
+    "cs get lua value: table ",
+    };
+
     void Start()
     {
         Application.logMessageReceived += this.log;
@@ -36,7 +56,7 @@ public class PTest : MonoBehaviour
         scriptEnv.Get("JitSwitch", out mJitSwitch);
         scriptEnv.Get("Version", out mVersion);
 
-        runCount = 10;
+        runCount = 1;
 
         testItems = new TestItem[17];
         for (int i = 0; i <= 10; ++i)
@@ -64,7 +84,7 @@ public class PTest : MonoBehaviour
             GC();
         }
 
-        if (GUI.Button(new Rect(130, 10, 100, 50), "Version"))
+        if (GUI.Button(new Rect(110, 10, 100, 50), "Version"))
         {
             mVersion();
         }
@@ -74,9 +94,17 @@ public class PTest : MonoBehaviour
             mJitSwitch();
         }
 
-        if (GUI.Button(new Rect(130, 80, 100, 50), "Clear Screen"))
+        if (GUI.Button(new Rect(110, 80, 100, 50), "ClearScreen"))
         {
             logText = "";
+        }
+
+        if (GUI.Button(new Rect(210, 80, 100, 50), "Test all"))
+        {
+            for (int i = 0; i < testItems.Length; ++i)
+            {
+                StartCoroutine(testItems[i].Test());
+            }
         }
 
         int[] rows = { 10, 110, 210 };
@@ -108,6 +136,6 @@ public class PTest : MonoBehaviour
         Resources.UnloadUnusedAssets();
         System.GC.Collect();
 
-        print("GC Done!");
+        //print("GC Done!");
     }
 }

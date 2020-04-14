@@ -37,7 +37,7 @@ public class TestLua : TestItem
 
     public override IEnumerator Test()
     {
-        m_ptest.logText += m_luaFuncName + " Begin:\n";
+        //m_ptest.logText += m_luaFuncName + " Begin:\n";
         double totalMS = 0;
 
         m_ptest.scriptEnv.Get(m_luaFuncName, out m_f);
@@ -51,10 +51,10 @@ public class TestLua : TestItem
             object ret = m_f(m_trans);
             double t = (double)ret * 1000;
             totalMS += t;
-            m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
+            //m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
         }
 
-        m_ptest.logText += string.Format("{0} complete average ms: {1}\n", m_luaFuncName, totalMS / count);
+        m_ptest.logText += string.Format("Test{0} {2} complete average ms: {1}\n", m_luaFuncName, totalMS / count, m_ptest.testDes[m_index]);
     }
 }
 
@@ -70,7 +70,7 @@ public class TestEmptyFunc : TestItem
 
     public override IEnumerator Test()
     {
-        m_ptest.logText += "Test" + m_index + " Begin:\n";
+        //m_ptest.logText += "Test" + m_index + " Begin:\n";
 
         m_ptest.scriptEnv.Get("EmptyFunc", out m_f);
         int count = m_ptest.runCount;
@@ -88,10 +88,10 @@ public class TestEmptyFunc : TestItem
             double t = (double)((System.DateTime.Now.Ticks - ts) / 10000.0);
 
             totalMS += t;
-            m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
+            //m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
         }
 
-        m_ptest.logText += string.Format("Test{0} complete average ms: {1}\n", m_index, totalMS / count);
+        m_ptest.logText += string.Format("Test{0} {2} complete average ms: {1}\n", m_index, totalMS / count, m_ptest.testDes[m_index]);
     }
 }
 
@@ -109,7 +109,7 @@ public class TestGetLuaValue : TestItem
 
     public override IEnumerator Test()
     {
-        m_ptest.logText += "Test" + m_index + " Begin:\n";
+        //m_ptest.logText += "Test" + m_index + " Begin:\n";
 
         int count = m_ptest.runCount;
         double totalMS = 0;
@@ -126,9 +126,9 @@ public class TestGetLuaValue : TestItem
             double t = (double)((System.DateTime.Now.Ticks - ts) / 10000.0);
 
             totalMS += t;
-            m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
+            //m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
         }
 
-        m_ptest.logText += string.Format("Test{0} complete average ms: {1}\n", m_index, totalMS / count);
+        m_ptest.logText += string.Format("Test{0} {2} complete average ms: {1}\n", m_index, totalMS / count, m_ptest.testDes[m_index]);
     }
 }
