@@ -1,4 +1,4 @@
-local UnityEngine = CS.UnityEngine
+锘縧ocal UnityEngine = CS.UnityEngine
 local up = UnityEngine.Vector3.up
 local GameObject = UnityEngine.GameObject
 local SkinnedMeshRenderer = UnityEngine.SkinnedMeshRenderer
@@ -75,7 +75,7 @@ function Test2()
 	return os.clock() - t
 end
 
---会存在大量gc操作
+--浼氬瓨鍦ㄥぇ閲廹c鎿嶄綔
 function Test3()
 	local t = os.clock()	
 
