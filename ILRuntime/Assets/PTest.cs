@@ -16,6 +16,25 @@ public class PTest : MonoBehaviour {
     public WaitForSeconds ws = new WaitForSeconds(2);
     public string logText = "";
     public int runCount;
+    public string[] testDes = new string[] {
+    "IL position get-set",
+    "IL transform:Rotate",
+    "IL vector",
+    "IL GameObject",
+    "IL Component",
+    "IL Input.mousePosition",
+    "IL Vector3",
+    "IL Quaternion",
+    "IL +-*/",
+    "IL array +",
+    "IL call cs func(int, string, vec3, trans)",         // 10
+    "IL call cs func()",
+    "cs get IL value: number ",
+    "cs get IL value: string ",
+    "cs get IL value: gameObject ",
+    "cs get IL value: vector ",
+    "cs get IL value: table ",
+    };
 
 #if ILRuntime
     public ILRuntime.Runtime.Enviorment.AppDomain appdomain;
@@ -28,7 +47,7 @@ public class PTest : MonoBehaviour {
     {
         Application.logMessageReceived += this.log;
 
-        runCount = 10;
+        runCount = 1;
 
         testItems = new TestItem[17];
         for (int i = 0; i <= 10; ++i)
@@ -160,7 +179,7 @@ public class PTest : MonoBehaviour {
         Resources.UnloadUnusedAssets();
         System.GC.Collect();
 
-        print("GC Done!");
+        //print("GC Done!");
     }
 
 
@@ -178,9 +197,17 @@ public class PTest : MonoBehaviour {
             GC();
         }
 
-        if (GUI.Button(new Rect(130, 10, 100, 50), "Clear Screen"))
+        if (GUI.Button(new Rect(110, 10, 100, 50), "Clear Screen"))
         {
             logText = "";
+        }
+
+        if (GUI.Button(new Rect(210, 10, 100, 50), "Test all"))
+        {
+            for (int i = 0; i < testItems.Length; ++i)
+            {
+                StartCoroutine(testItems[i].Test());
+            }
         }
 
 

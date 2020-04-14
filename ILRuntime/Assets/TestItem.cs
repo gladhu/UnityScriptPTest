@@ -36,7 +36,7 @@ public class TestDllWithTrans : TestItem
 
     public override IEnumerator Test()
     {
-        m_ptest.logText += "Test" + m_index + " Begin:\n";
+        //m_ptest.logText += "Test" + m_index + " Begin:\n";
         double totalMS = 0;
 #if ILRuntime
         IMethod method = m_ptest.appdomain.LoadedTypes["PTest"].GetMethod(m_luaFuncName, 1);
@@ -57,10 +57,10 @@ public class TestDllWithTrans : TestItem
             double t = (double)method.Invoke(null, ps);
 #endif
             totalMS += t;
-            m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
+            //m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
         }
 
-        m_ptest.logText += string.Format("Test{0} complete average ms: {1}\n", m_index, totalMS / count);
+        m_ptest.logText += string.Format("Test{0} {2} complete average ms: {1}\n", m_index, totalMS / count, m_ptest.testDes[m_index]);
     }
 }
 
@@ -78,7 +78,7 @@ public class TestDll : TestItem
 
     public override IEnumerator Test()
     {
-        m_ptest.logText += "Test" + m_index + " Begin:\n";
+        //m_ptest.logText += "Test" + m_index + " Begin:\n";
         double totalMS = 0;
 #if ILRuntime
         IMethod method = m_ptest.appdomain.LoadedTypes["PTest"].GetMethod(m_luaFuncName, 0);
@@ -96,10 +96,10 @@ public class TestDll : TestItem
             double t = (double)method.Invoke(null, null);
 #endif
             totalMS += t;
-            m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
+            //m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
         }
 
-        m_ptest.logText += string.Format("Test{0} complete average ms: {1}\n", m_index, totalMS / count);
+        m_ptest.logText += string.Format("Test{0} {2} complete average ms: {1}\n", m_index, totalMS / count, m_ptest.testDes[m_index]);
     }
 }
 
@@ -113,7 +113,7 @@ public class TestEmptyFunc : TestItem
 
     public override IEnumerator Test()
     {
-        m_ptest.logText += "Test" + m_index + " Begin:\n";
+        //m_ptest.logText += "Test" + m_index + " Begin:\n";
 #if ILRuntime
         IType type = m_ptest.appdomain.LoadedTypes["PTest"];
         IMethod method = type.GetMethod("EmptyFunc", 0);
@@ -140,10 +140,10 @@ public class TestEmptyFunc : TestItem
             double t = (double)((System.DateTime.Now.Ticks - ts) / 10000.0);
 
             totalMS += t;
-            m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
+            //m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
         }
 
-        m_ptest.logText += string.Format("Test{0} complete average ms: {1}\n", m_index, totalMS / count);
+        m_ptest.logText += string.Format("Test{0} {2} complete average ms: {1}\n", m_index, totalMS / count, m_ptest.testDes[m_index]);
     }
 }
 
@@ -161,7 +161,7 @@ public class TestGetValue : TestItem
 
     public override IEnumerator Test()
     {
-        m_ptest.logText += "Test" + m_index + " Begin:\n";
+        //m_ptest.logText += "Test" + m_index + " Begin:\n";
 
 
         int count = m_ptest.runCount;
@@ -187,9 +187,9 @@ public class TestGetValue : TestItem
             double t = (double)((System.DateTime.Now.Ticks - ts) / 10000.0);
 
             totalMS += t;
-            m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
+            //m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
         }
 
-        m_ptest.logText += string.Format("Test{0} complete average ms: {1}\n", m_index, totalMS / count);
+        m_ptest.logText += string.Format("Test{0} {2} complete average ms: {1}\n", m_index, totalMS / count, m_ptest.testDes[m_index]);
     }
 }
