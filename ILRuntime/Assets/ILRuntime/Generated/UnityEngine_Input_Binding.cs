@@ -446,7 +446,7 @@ namespace ILRuntime.Runtime.Generated
             __intp.Free(ptr_of_this_method);
 
 
-            var result_of_this_method = UnityEngine.Input.IsJoystickPreconfigured(@joystickName);
+            var result_of_this_method = false; //UnityEngine.Input.IsJoystickPreconfigured(@joystickName);
 
             __ret->ObjectType = ObjectTypes.Integer;
             __ret->Value = result_of_this_method ? 1 : 0;
