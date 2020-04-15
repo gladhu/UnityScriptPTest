@@ -43,7 +43,7 @@ public class ILRuntimeDll : DllEnv
         {
             using (System.IO.MemoryStream p = new MemoryStream(pdb))
             {
-                appdomain.LoadAssembly(fs, p, new Mono.Cecil.Pdb.PdbReaderProvider());
+                appdomain.LoadAssembly(fs, p, new ILRuntime.Mono.Cecil.Pdb.PdbReaderProvider());
             }
         }
 

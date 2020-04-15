@@ -38,6 +38,8 @@ public class PTest : MonoBehaviour {
 
 #if ILRuntime
     public ILRuntime.Runtime.Enviorment.AppDomain appdomain;
+    System.IO.MemoryStream fs;
+    System.IO.MemoryStream p;
 #else
     public System.Reflection.Assembly assembly;
 #endif
@@ -105,13 +107,9 @@ public class PTest : MonoBehaviour {
         if (!string.IsNullOrEmpty(www.error))
             UnityEngine.Debug.LogError(www.error);
         byte[] pdb = www.bytes;
-        using (System.IO.MemoryStream fs = new MemoryStream(dll))
-        {
-            using (System.IO.MemoryStream p = new MemoryStream(pdb))
-            {
-                appdomain.LoadAssembly(fs, p, new Mono.Cecil.Pdb.PdbReaderProvider());
-            }
-        }
+        fs = new MemoryStream(dll);
+        p = new MemoryStream(pdb);
+        appdomain.LoadAssembly(fs, p, new ILRuntime.Mono.Cecil.Pdb.PdbReaderProvider());
 
         ILRuntime.Runtime.Generated.CLRBindings.Initialize(appdomain);
 
