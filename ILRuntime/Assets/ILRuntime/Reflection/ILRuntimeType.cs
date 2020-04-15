@@ -21,7 +21,7 @@ namespace ILRuntime.Reflection
         ILRuntimeMethodInfo[] methods;
 
         public ILType ILType { get { return type; } }
-        
+
         public ILRuntimeType(ILType t)
         {
             type = t;
@@ -30,6 +30,12 @@ namespace ILRuntime.Reflection
 
         void InitializeCustomAttribute()
         {
+            if(type.TypeDefinition == null)
+            {
+                customAttributes = new object[0];
+                attributeTypes = new Type[0];
+                return;
+            }
             customAttributes = new object[type.TypeDefinition.CustomAttributes.Count];
             attributeTypes = new Type[customAttributes.Length];
             for (int i = 0; i < type.TypeDefinition.CustomAttributes.Count; i++)
@@ -40,19 +46,24 @@ namespace ILRuntime.Reflection
                 {
                     object ins = attribute.CreateInstance(at, appdomain);
 
-                    attributeTypes[i] = at.ReflectionType;
+                    attributeTypes[i] = at.ReflectionType is ILRuntimeWrapperType ? at.TypeForCLR : at.ReflectionType;
                     customAttributes[i] = ins;
                 }
                 catch
                 {
                     attributeTypes[i] = typeof(Attribute);
-                }               
+                }
             }
 
         }
 
         void InitializeProperties()
         {
+            if (type.TypeDefinition == null)
+            {
+                properties = new ILRuntimePropertyInfo[0];
+                return;
+            }
             int cnt = type.TypeDefinition.HasProperties ? type.TypeDefinition.Properties.Count : 0;
             properties = new ILRuntimePropertyInfo[cnt];
             for (int i = 0; i < cnt; i++)
@@ -61,9 +72,9 @@ namespace ILRuntime.Reflection
                 ILRuntimePropertyInfo pi = new ILRuntimePropertyInfo(pd, type);
                 properties[i] = pi;
                 if (pd.GetMethod != null)
-                    pi.Getter = type.GetMethod(pd.GetMethod.Name, 0) as ILMethod;
+                    pi.Getter = type.GetMethod(pd.GetMethod.Name, pd.GetMethod.Parameters.Count) as ILMethod;
                 if (pd.SetMethod != null)
-                    pi.Setter = type.GetMethod(pd.SetMethod.Name, 1) as ILMethod;
+                    pi.Setter = type.GetMethod(pd.SetMethod.Name, pd.SetMethod.Parameters.Count) as ILMethod;
             }
         }
 
@@ -75,6 +86,25 @@ namespace ILRuntime.Reflection
             {
                 this.methods[i] = (ILRuntimeMethodInfo)((ILMethod)methods[i]).ReflectionMethodInfo;
             }
+        }
+
+        public override Type MakeGenericType(params Type[] typeArguments)
+        {
+            if (ILType.TypeReference.HasGenericParameters)
+            {
+                KeyValuePair<string, IType>[] ga = new KeyValuePair<string, IType>[typeArguments.Length];
+                for (int i = 0; i < ga.Length; i++)
+                {
+                    string key = ILType.TypeReference.GenericParameters[0].Name;
+                    if (typeArguments[i] is ILRuntimeType)
+                        ga[i] = new KeyValuePair<string, IType>(key, ((ILRuntimeType)typeArguments[i]).ILType);
+                    else
+                        ga[i] = new KeyValuePair<string, IType>(key, ILType.AppDomain.GetType(typeArguments[i]));
+                }
+                return ILType.MakeGenericInstance(ga).ReflectionType;
+            }
+            else
+                throw new NotSupportedException();
         }
 
         void InitializeFields()
@@ -113,7 +143,14 @@ namespace ILRuntime.Reflection
         {
             get
             {
-                return type.BaseType != null ? type.BaseType.ReflectionType : null;
+                if (type.IsEnum)
+                    return typeof(Enum);
+                else if (type.IsArray)
+                    return typeof(Array);
+                else
+                {
+                    return type.BaseType != null ? type.BaseType.ReflectionType : null;
+                }
             }
         }
 
@@ -153,7 +190,7 @@ namespace ILRuntime.Reflection
         {
             get
             {
-                throw new NotImplementedException();
+                return type.TypeDefinition.Namespace;
             }
         }
 
@@ -191,15 +228,47 @@ namespace ILRuntime.Reflection
             List<object> res = new List<object>();
             for(int i = 0; i < customAttributes.Length; i++)
             {
-                if (attributeTypes[i] == attributeType)
+                if (attributeTypes[i].Equals((object)attributeType))
                     res.Add(customAttributes[i]);
             }
             return res.ToArray();
         }
 
+        public override bool IsAssignableFrom(Type c)
+        {
+            IType type;
+            if (c is ILRuntimeWrapperType)
+            {
+                type = ((ILRuntimeWrapperType)c).CLRType;
+            }
+            else if (c is ILRuntimeType)
+            {
+                type = ((ILRuntimeType)c).ILType;
+            }
+            else
+                type = ILType.AppDomain.GetType(c);
+            return type.CanAssignTo(ILType);
+        }
+
+        public override bool IsInstanceOfType(object o)
+        {
+            if (o == null)
+            {
+                return false;
+            }
+
+            var instance = o as ILTypeInstance;
+            return IsAssignableFrom(instance != null ? instance.Type.ReflectionType : o.GetType());
+        }
+
         public override Type GetElementType()
         {
-            throw new NotImplementedException();
+            if (type.IsArray)
+            {
+                return type.ElementType.ReflectionType;
+            }
+            else
+                throw new NotImplementedException();
         }
 
         public override EventInfo GetEvent(string name, BindingFlags bindingAttr)
@@ -221,6 +290,10 @@ namespace ILRuntime.Reflection
                 if (i.Name == name)
                     return i;
             }
+            if (BaseType != null && BaseType is ILRuntimeWrapperType)
+            {
+                return BaseType.GetField(name, bindingAttr);
+            }
             return null;
         }
 
@@ -228,7 +301,27 @@ namespace ILRuntime.Reflection
         {
             if (fields == null)
                 InitializeFields();
-            return fields;
+            bool isPublic = (bindingAttr & BindingFlags.Public) == BindingFlags.Public;
+            bool isPrivate = (bindingAttr & BindingFlags.NonPublic) == BindingFlags.NonPublic;
+            bool isStatic = (bindingAttr & BindingFlags.Static) == BindingFlags.Static;
+            bool isInstance = (bindingAttr & BindingFlags.Instance) == BindingFlags.Instance;
+            List<FieldInfo> res = new List<FieldInfo>();
+            foreach(var i in fields)
+            {
+                if (isPublic != i.IsPublic && isPrivate != !i.IsPublic)
+                    continue;
+                if ((isStatic != i.IsStatic) && (isInstance != !i.IsStatic))
+                    continue;
+                res.Add(i);
+            }
+            if ((bindingAttr & BindingFlags.DeclaredOnly) != BindingFlags.DeclaredOnly)
+            {
+                if (BaseType != null && BaseType is ILRuntimeWrapperType)
+                {
+                    res.AddRange(BaseType.GetFields(bindingAttr));
+                }
+            }
+            return res.ToArray();
         }
 
         public override Type GetInterface(string name, bool ignoreCase)
@@ -271,7 +364,7 @@ namespace ILRuntime.Reflection
             }
             for (int i = methods.Length + fields.Length; i < res.Length; i++)
             {
-                res[i] = properties[i- methods.Length - fields.Length];
+                res[i] = properties[i - methods.Length - fields.Length];
             }
 
             return res;
@@ -298,7 +391,27 @@ namespace ILRuntime.Reflection
         {
             if (properties == null)
                 InitializeProperties();
-            return properties;
+            bool isPublic = (bindingAttr & BindingFlags.Public) == BindingFlags.Public;
+            bool isPrivate = (bindingAttr & BindingFlags.NonPublic) == BindingFlags.NonPublic;
+            bool isStatic = (bindingAttr & BindingFlags.Static) == BindingFlags.Static;
+            bool isInstance = (bindingAttr & BindingFlags.Instance) == BindingFlags.Instance;
+            List<PropertyInfo> res = new List<PropertyInfo>();
+            foreach (var i in properties)
+            {
+                if (isPublic != i.IsPublic && isPrivate != !i.IsPublic)
+                    continue;
+                if ((isStatic != i.IsStatic) && (isInstance != !i.IsStatic))
+                    continue;
+                res.Add(i);
+            }
+            if ((bindingAttr & BindingFlags.DeclaredOnly) != BindingFlags.DeclaredOnly)
+            {
+                if (BaseType != null && BaseType is ILRuntimeWrapperType)
+                {
+                    res.AddRange(BaseType.GetProperties(bindingAttr));
+                }
+            }
+            return res.ToArray();
         }
 
         public override object InvokeMember(string name, BindingFlags invokeAttr, Binder binder, object target, object[] args, ParameterModifier[] modifiers, CultureInfo culture, string[] namedParameters)
@@ -312,7 +425,7 @@ namespace ILRuntime.Reflection
                 InitializeCustomAttribute();
             for (int i = 0; i < customAttributes.Length; i++)
             {
-                if (attributeTypes[i] == attributeType)
+                if (attributeTypes[i].Equals(attributeType))
                     return true;
             }
             return false;
@@ -321,6 +434,10 @@ namespace ILRuntime.Reflection
         protected override TypeAttributes GetAttributeFlagsImpl()
         {
             TypeAttributes res = TypeAttributes.Public;
+            if (type.TypeDefinition == null)
+            {
+                return TypeAttributes.Class;
+            }
             if (type.TypeDefinition.IsAbstract)
                 res |= TypeAttributes.Abstract;
             if (!type.IsValueType)
@@ -378,8 +495,8 @@ namespace ILRuntime.Reflection
                         param.Add(t);
                     }
                 }
-
-                res = type.GetMethod(name, param, null);
+                bool declearedOnly = (bindingAttr & BindingFlags.DeclaredOnly) == BindingFlags.DeclaredOnly;
+                res = type.GetMethod(name, param, null, null, declearedOnly);
             }
             if (res != null)
                 return ((ILMethod)res).ReflectionMethodInfo;
@@ -397,6 +514,13 @@ namespace ILRuntime.Reflection
                 if (i.Name == name)
                     return i;
             }
+            if ((bindingAttr & BindingFlags.DeclaredOnly) != BindingFlags.DeclaredOnly)
+            {
+                if (BaseType != null && BaseType is ILRuntimeWrapperType)
+                {
+                    return BaseType.GetProperty(name, bindingAttr);
+                }
+            }
             return null;
         }
 
@@ -404,10 +528,9 @@ namespace ILRuntime.Reflection
         {
             return false;
         }
-
         protected override bool IsArrayImpl()
         {
-            return false;
+            return type.IsArray;
         }
 
         protected override bool IsByRefImpl()
@@ -432,6 +555,32 @@ namespace ILRuntime.Reflection
         public override int GetHashCode()
         {
             return type.GetHashCode();
+        }
+        public override bool Equals(object o)
+        {
+            return o is ILRuntimeType ? ((ILRuntimeType)o).type == type : false;
+        }
+        public override bool IsGenericType
+        {
+            get
+            {
+                return type.HasGenericParameter || type.GenericArguments != null;
+            }
+        }
+
+        public override Type GetGenericTypeDefinition()
+        {
+            var def = type.GetGenericDefinition();
+
+            return def != null ? def.ReflectionType : null;
+        }
+
+        public override bool IsGenericTypeDefinition
+        {
+            get
+            {
+                return type.HasGenericParameter;
+            }
         }
     }
 }

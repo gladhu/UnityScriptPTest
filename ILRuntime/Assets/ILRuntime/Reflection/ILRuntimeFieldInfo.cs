@@ -5,7 +5,7 @@ using System.Text;
 using System.Reflection;
 using System.Globalization;
 
-using Mono.Cecil;
+using ILRuntime.Mono.Cecil;
 using ILRuntime.CLR.Utils;
 using ILRuntime.CLR.TypeSystem;
 using ILRuntime.Runtime;
@@ -17,7 +17,7 @@ namespace ILRuntime.Reflection
 {
     public class ILRuntimeFieldInfo : FieldInfo
     {
-        System.Reflection.FieldAttributes attr = System.Reflection.FieldAttributes.Public;
+        System.Reflection.FieldAttributes attr;
         ILRuntimeType dType;
         ILType ilType;
         IType fieldType;
@@ -42,6 +42,12 @@ namespace ILRuntime.Reflection
             this.fieldIdx = fieldIdx; 
             if (isStatic)
                 attr |= System.Reflection.FieldAttributes.Static;
+            if (def.IsPublic)
+            {
+                attr |= System.Reflection.FieldAttributes.Public;
+            }
+            else
+                attr |= System.Reflection.FieldAttributes.Private;
             fieldType = isStatic ? ilType.StaticFieldTypes[fieldIdx] : ilType.FieldTypes[fieldIdx];
         }
 
@@ -56,6 +62,12 @@ namespace ILRuntime.Reflection
             this.fieldIdx = fieldIdx;
             if (isStatic)
                 attr |= System.Reflection.FieldAttributes.Static;
+            if (def.IsPublic)
+            {
+                attr |= System.Reflection.FieldAttributes.Public;
+            }
+            else
+                attr |= System.Reflection.FieldAttributes.Private;
             this.fieldType = fieldType;
         }
 
@@ -80,6 +92,7 @@ namespace ILRuntime.Reflection
                 }
             }
         }
+
         public override System.Reflection.FieldAttributes Attributes
         {
             get
@@ -140,11 +153,14 @@ namespace ILRuntime.Reflection
         {
             if (customAttributes == null)
                 InitializeCustomAttribute();
+
             List<object> res = new List<object>();
             for (int i = 0; i < customAttributes.Length; i++)
             {
-                if (attributeTypes[i] == attributeType)
+                if (attributeTypes[i].Equals(attributeType))
+                {
                     res.Add(customAttributes[i]);
+                }
             }
             return res.ToArray();
         }
@@ -166,7 +182,7 @@ namespace ILRuntime.Reflection
                     else
                         ins = ((CrossBindingAdaptorType)obj).ILInstance;
                 }
-                return FieldType.CheckCLRTypes(appdomain, ins[fieldIdx]);
+                return fieldType.TypeForCLR.CheckCLRTypes(ins[fieldIdx]);
             }
         }
 
@@ -174,10 +190,14 @@ namespace ILRuntime.Reflection
         {
             if (customAttributes == null)
                 InitializeCustomAttribute();
+
+
             for (int i = 0; i < customAttributes.Length; i++)
             {
-                if (attributeTypes[i] == attributeType)
+                if (attributeTypes[i].Equals(attributeType))
+                {
                     return true;
+                }
             }
             return false;
         }

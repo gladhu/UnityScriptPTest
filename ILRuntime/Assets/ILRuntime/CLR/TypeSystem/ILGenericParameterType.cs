@@ -30,6 +30,14 @@ namespace ILRuntime.CLR.TypeSystem
             }
         }
 
+        public bool IsGenericParameter
+        {
+            get
+            {
+                return true;
+            }
+        }
+
         public Type TypeForCLR
         {
             get { return typeof(ILGenericParameterType); }
@@ -45,12 +53,12 @@ namespace ILRuntime.CLR.TypeSystem
             get { return null; }
         }
 
-        public Method.IMethod GetMethod(string name, int paramCount)
+        public Method.IMethod GetMethod(string name, int paramCount, bool declaredOnly = false)
         {
             return null;
         }
 
-        public Method.IMethod GetMethod(string name, List<IType> param, IType[] genericArguments, IType returnType = null)
+        public Method.IMethod GetMethod(string name, List<IType> param, IType[] genericArguments, IType returnType = null, bool declaredOnly = false)
         {
             return null;
         }
@@ -109,7 +117,7 @@ namespace ILRuntime.CLR.TypeSystem
             get { return arrayType; }
         }
 
-        public IType MakeArrayType()
+        public IType MakeArrayType(int rank)
         {
             if (arrayType == null)
                 arrayType = new ILGenericParameterType(name + "[]");
@@ -120,6 +128,19 @@ namespace ILRuntime.CLR.TypeSystem
         public bool IsValueType
         {
             get { throw new NotImplementedException(); }
+        }
+
+        public bool IsPrimitive
+        {
+            get { return false; }
+        }
+        public bool IsEnum
+        {
+            get { return false; }
+        }
+        public bool IsInterface
+        {
+            get { return false; }
         }
 
         public string Name
@@ -157,6 +178,40 @@ namespace ILRuntime.CLR.TypeSystem
         public Method.IMethod GetVirtualMethod(Method.IMethod method)
         {
             return method;
+        }
+
+        public bool IsArray
+        {
+            get { return false; }
+        }
+
+        public bool IsByRef
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public IType ElementType
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        public int ArrayRank
+        {
+            get { return 1; }
+        }
+
+        public IType[] Implements
+        {
+            get
+            {
+                return null;
+            }
         }
     }
 }

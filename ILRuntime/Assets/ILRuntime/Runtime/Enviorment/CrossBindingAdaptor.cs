@@ -42,14 +42,14 @@ namespace ILRuntime.Runtime.Enviorment
 
         #region IType Members
 
-        public IMethod GetMethod(string name, int paramCount)
+        public IMethod GetMethod(string name, int paramCount, bool declaredOnly = false)
         {
-            return type.GetMethod(name, paramCount);
+            return type.GetMethod(name, paramCount, declaredOnly);
         }
 
-        public IMethod GetMethod(string name, List<IType> param, IType[] genericArguments, IType returnType = null)
+        public IMethod GetMethod(string name, List<IType> param, IType[] genericArguments, IType returnType = null, bool declaredOnly = false)
         {
-            return type.GetMethod(name, param, genericArguments, returnType);
+            return type.GetMethod(name, param, genericArguments, returnType, declaredOnly);
         }
 
         public List<IMethod> GetMethods()
@@ -69,7 +69,21 @@ namespace ILRuntime.Runtime.Enviorment
 
         public bool CanAssignTo(IType type)
         {
-            return type.CanAssignTo(type);
+            bool res = false;
+            if (BaseType != null)
+                res = BaseType.CanAssignTo(type);
+            var interfaces = Implements;
+            if (!res && interfaces != null)
+            {
+                for (int i = 0; i < interfaces.Length; i++)
+                {
+                    var im = interfaces[i];
+                    res = im.CanAssignTo(type);
+                    if (res)
+                        return true;
+                }
+            }
+            return res;
         }
 
         public IType MakeGenericInstance(KeyValuePair<string, IType>[] genericArguments)
@@ -82,9 +96,9 @@ namespace ILRuntime.Runtime.Enviorment
             return type.MakeByRefType();
         }
 
-        public IType MakeArrayType()
+        public IType MakeArrayType(int rank)
         {
-            return type.MakeArrayType();
+            return type.MakeArrayType(rank);
         }
 
         public IType FindGenericArgument(string key)
@@ -166,6 +180,23 @@ namespace ILRuntime.Runtime.Enviorment
             }
         }
 
+        public bool IsPrimitive
+        {
+            get
+            {
+                return type.IsPrimitive;
+            }
+        }
+
+
+        public bool IsEnum
+        {
+            get
+            {
+                return type.IsEnum;
+            }
+        }
+
         public bool IsDelegate
         {
             get
@@ -198,12 +229,57 @@ namespace ILRuntime.Runtime.Enviorment
             }
         }
 
+        public IType[] Implements
+        {
+            get
+            {
+                return type.Implements;
+            }
+        }
+
         public bool HasGenericParameter
         {
             get
             {
                 return type.HasGenericParameter;
             }
+        }
+
+        public bool IsGenericParameter
+        {
+            get
+            {
+                return type.IsGenericParameter;
+            }
+        }
+        public bool IsArray
+        {
+            get { return false; }
+        }
+        public bool IsByRef
+        {
+            get
+            {
+                return type.IsByRef;
+            }
+        }
+
+        public bool IsInterface
+        {
+            get { return type.IsInterface; }
+        }
+
+        public IType ElementType
+        {
+            get
+            {
+                return type.ElementType;
+            }
+        }
+
+        public int ArrayRank
+        {
+            get { return type.ArrayRank; }
         }
         #endregion
     }
