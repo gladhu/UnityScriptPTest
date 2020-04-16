@@ -54,7 +54,7 @@ public class TestLua : TestItem
             //m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
         }
 
-        m_ptest.logText += string.Format("Test{0} {2} complete average ms: {1}\n", m_luaFuncName, totalMS / count, m_ptest.testDes[m_index]);
+        m_ptest.logText += string.Format("{0} {2} complete average ms: {1}\n", m_luaFuncName, totalMS / count, m_ptest.testDes[m_index]);
     }
 }
 
@@ -91,7 +91,7 @@ public class TestEmptyFunc : TestItem
             //m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
         }
 
-        m_ptest.logText += string.Format("Test{0} {2} complete average ms: {1}\n", m_index, totalMS / count, m_ptest.testDes[m_index]);
+        m_ptest.logText += string.Format("{0} {2} complete average ms: {1}\n", m_index, totalMS / count, m_ptest.testDes[m_index]);
     }
 }
 
@@ -129,6 +129,6 @@ public class TestGetLuaValue : TestItem
             //m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
         }
 
-        m_ptest.logText += string.Format("Test{0} {2} complete average ms: {1}\n", m_index, totalMS / count, m_ptest.testDes[m_index]);
+        m_ptest.logText += string.Format("{0} {2} complete average ms: {1}\n", m_index, totalMS / count, m_ptest.testDes[m_index]);
     }
 }
