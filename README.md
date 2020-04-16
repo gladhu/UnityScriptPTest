@@ -12,7 +12,7 @@
 
 在Unity中定义Symbol ILRuntime，才真正运行的ILRuntime
 
-![1587026630727](C:\Users\gladhu\AppData\Roaming\Typora\typora-user-images\1587026630727.png)
+![1587026630727](1587026630727.png)
 
 ### XLua
 
