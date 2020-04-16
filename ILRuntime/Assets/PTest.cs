@@ -28,7 +28,7 @@ public class PTest : MonoBehaviour {
     "IL +-*/",
     "IL array +",
     "IL call cs func(int, string, vec3, trans)",         // 10
-    "IL call cs func()",
+    "cs call IL func()",
     "cs get IL value: number ",
     "cs get IL value: string ",
     "cs get IL value: gameObject ",
